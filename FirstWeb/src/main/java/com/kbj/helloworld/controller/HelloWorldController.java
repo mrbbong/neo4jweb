@@ -21,7 +21,7 @@ import java.util.List;
 public class HelloWorldController {
     //String message = "Welcome to Spring MVC!";
   
-    @RequestMapping("/hello")
+    @RequestMapping("/user")
     public ModelAndView showMessage(
             @RequestParam(value = "uid", required = false, defaultValue = "1") String uid) {
         //System.out.println("in controller");
@@ -33,13 +33,15 @@ public class HelloWorldController {
 			
 			try ( Transaction tx = session.beginTransaction() ) {
 				StatementResult result = tx.run( "MATCH p=(u:User)-[r:Rating]->(m:Movie)  " +
-			    "u.uid = {uid}" +
-				"RETURN r.rate AS rate, r.timestamp AS title",
-				parameters( "uid", uid ) );
+					    "WHERE u.uid = {uid} " +
+						"RETURN r.rate AS rate, r.timestamp AS timestamp",
+						parameters( "uid", Integer.parseInt(uid)) );
 				
 				while ( result.hasNext() ) {
 					Record record = result.next();
-					ratingList.add(record.get( "rate" ).asString() + " , " + record.get( "timestamp" ).asString());
+					String rate = record.get( "rate" ).toString();
+					String timestamp =  record.get( "timestamp" ).toString();
+					ratingList.add(rate + " - " + timestamp);
 				}
 			}
 		}
@@ -47,6 +49,7 @@ public class HelloWorldController {
   
         ModelAndView mv = new ModelAndView("helloworld");
         mv.addObject("ratingList", ratingList);
+        mv.addObject("uid", uid);
         return mv;
     }
 }
